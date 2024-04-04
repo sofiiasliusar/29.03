@@ -16,14 +16,14 @@ class MenuScreen(Screen):
 class GameScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
+
 class MainApp(App):
     def build(self):
         sm = ScreenManager()
         sm.add_widget(MenuScreen(name = 'menu'))
         sm.add_widget(GameScreen(name = 'game'))
         return sm
-        
+
     if platform != 'android':
         Window.size = (400,800)
         Window.left = 750
