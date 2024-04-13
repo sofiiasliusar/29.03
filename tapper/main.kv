@@ -5,6 +5,7 @@
 #:set color_a "#FD3A0F"
 #:set color_b "#9A0794"
 
+# customizable button class
 <ButtonMenu@Button>:
     size_hint_y: 0.3
     font_size: "30sp"
@@ -29,7 +30,7 @@
         spacing: '20dp'
 
         Label:
-            text: 'Cosmo Adventure'
+            text: 'Sweet Adventure'
             font_name: 'assets/Sacramento-Regular.ttf'
             font_size: '30dp'
             color: 'red'
@@ -46,17 +47,72 @@
 
         ButtonMenu:
             text: "Start"
-            on_press: root.manager.current = 'game'
+            on_press: 
+                root.manager.transition.direction = "left"
+                root.manager.current = 'game'
         ButtonMenu:
             text: "Lider Board"
         ButtonMenu:
-            text: "Settings"
+            text: "Shop"
+            on_press: 
+                root.manager.transition.direction = "left"
+                root.manager.current = 'shop'
+
+<ShopScreen>:
+    GridLayout:
+        cols: 1
+        padding: 20
+        spacing: 20
+        
+        BoxLayout:
+            size_hint_y: None
+            height: "48dp"
+            Button:
+                text: '<'
+                size_hint_x: None
+                height: 50
+                width: "48dp"
+                on_press: 
+                    root.manager.transition.direction = "right" 
+                    root.manager.current = 'menu'
+        RelativeLayout:    
+            Label:
+                text: 'Auto-tap'
+                font_name: 'assets/Sacramento-Regular.ttf'
+                font_size: '30sp'
+                color: color_btn_bg
+                halign: 'center'
+                valign: 'middle'
+                size_hint: None, None
+                size: self.texture_size 
+                pos_hint: {'center_x': 0.5, 'center_y': 0.7}
+                        
+            Switch:
+                id: autotap_switch
+                active: False
+                on_active: root.toggle_autotap(self.active)
+                size_hint: None, None
+                size: 100, 50
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            
 
 <GameScreen>:
     BoxLayout:
         orientation: 'vertical'
         BoxLayout:
-            size_hint_y: 0.1
+            size_hint_y: None
+            height: "48dp"
+            Button:
+                text: '<'
+                size_hint_x: None
+                height: 50
+                width: "48dp"
+                on_press:
+                    root.manager.transition.direction = "right" 
+                    root.manager.current = 'menu'
+                
+                # This will return to the 'menu' screen
+
             Label:
                 text: 'score: ' + str(root.points)
                 font_name: 'assets/Sacramento-Regular.ttf'
@@ -69,6 +125,7 @@
                 id: donut
         BoxLayout:
             size_hint_y: 0.1
+
 
 <Donut>
     allow_stretch: True

@@ -1,3 +1,4 @@
+# create auto tap when switch is on - integrate comment code and read about it
 # 1 
 from kivy.app import App
 from kivy.uix.button import Button
@@ -20,16 +21,70 @@ class MenuScreen(Screen):
         
 class GameScreen(Screen):
     points = NumericProperty(0)
+    # The constructor takes arbitrary keyword arguments (**kwargs). 
+    # This allows the class to accept any additional arguments
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.donut = Donut(game_screen_ref=self)
+
+    # This line calls the constructor of the parent class (Screen) using super(). 
+    # It passes any keyword arguments received by the GameScreen constructor to the parent class constructor. 
     def on_enter(self, *args):
         self.ids.donut.new_donut()
+        # accesses the ids dictionary of the GameScreen instance. 
+        # In Kivy, the ids dictionary contains references to all widgets declared in the KV language file associated with the screen
+
+
+
 
 class Donut(Image):
     is_anim = False
     hp = None
     donut = None
     donut_index = 0
+    autotap = False  # Variable to track autotap state
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.game_screen_ref = kwargs.get('game_screen_ref') 
+        
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            if self.autotap or touch.is_mouse_scrolling:  # Check if autotap is enabled or scrolling
+                self.game_screen_ref.points += 1  # Access points from GameScreen instance
+                self.hp -= 1
+                if self.hp <= 0:
+                    self.new_donut()
+                    
+                x = self.x
+                y = self.y
+                anim = Animation(x=x-5, y=y-5, duration=0.05) + \
+                    Animation(x=x, y=y, duration=0.05)
+                anim.start(self)
+                self.is_anim = True
+                anim.on_complete = lambda *args: setattr(self, 'is_anim', False)
+            return True  # Return True to indicate that the touch event is consumed
+        return super().on_touch_down(touch)
+    
+    def new_donut(self):
+        self.donut = app.LEVELS[randint(0, len(app.LEVELS))-1]
+        self.source = app.DONUTS[self.donut]['source']
+        self.hp = app.DONUTS[self.donut]['hp']
+        
+        if self.autotap:
+            Clock.schedule_interval(self.auto_increment_points, 0.1)  # Start autotapping
+        
+    def auto_increment_points(self, dt):
+        self.parent.parent.parent.points += 1
+        self.hp -= 1
+        if self.hp <= 0:
+            self.new_donut()
+
+class ShopScreen(Screen):
+    def init(self, **kwargs):
+        super().__init__(**kwargs)
+    def toggle_autotap(self, active):
+        self.ids.autotap_switch.autotap = active 
 
     
     def on_touch_down(self, touch):
@@ -66,6 +121,7 @@ class MainApp(App):
         sm = ScreenManager()
         sm.add_widget(MenuScreen(name = 'menu'))
         sm.add_widget(GameScreen(name = 'game'))
+        sm.add_widget(ShopScreen(name = 'shop'))
         return sm
 
     if platform != 'android':
