@@ -25,7 +25,7 @@ class GameScreen(Screen):
     # This allows the class to accept any additional arguments
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.donut = Donut(game_screen_ref=self)
+        # self.donut = Donut(game_screen_ref=self)
 
     # This line calls the constructor of the parent class (Screen) using super(). 
     # It passes any keyword arguments received by the GameScreen constructor to the parent class constructor. 
@@ -42,28 +42,29 @@ class Donut(Image):
     hp = None
     donut = None
     donut_index = 0
-    autotap = False  # Variable to track autotap state
+    # autotap = False  # Variable to track autotap state
     
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.game_screen_ref = kwargs.get('game_screen_ref') 
+    # def __init__(self, **kwargs):
+    #     super().__init__(**kwargs)
+    #     self.game_screen_ref = kwargs.get('game_screen_ref') 
         
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            if self.autotap or touch.is_mouse_scrolling:  # Check if autotap is enabled or scrolling
-                self.game_screen_ref.points += 1  # Access points from GameScreen instance
-                self.hp -= 1
-                if self.hp <= 0:
-                    self.new_donut()
+            # if self.autotap or touch.is_mouse_scrolling:  # Check if autotap is enabled or scrolling
+            #     self.game_screen_ref.points += 1  # Access points from GameScreen instance
+            self.parent.parent.parent.points +=1
+            self.hp -= 1
+            if self.hp <= 0:
+                self.new_donut()
                     
-                x = self.x
-                y = self.y
-                anim = Animation(x=x-5, y=y-5, duration=0.05) + \
-                    Animation(x=x, y=y, duration=0.05)
-                anim.start(self)
-                self.is_anim = True
-                anim.on_complete = lambda *args: setattr(self, 'is_anim', False)
-            return True  # Return True to indicate that the touch event is consumed
+            x = self.x
+            y = self.y
+            anim = Animation(x=x-5, y=y-5, duration=0.05) + \
+                Animation(x=x, y=y, duration=0.05)
+            anim.start(self)
+            self.is_anim = True
+            anim.on_complete = lambda *args: setattr(self, 'is_anim', False)
+            # return True  # Return True to indicate that the touch event is consumed
         return super().on_touch_down(touch)
     
     def new_donut(self):
@@ -71,15 +72,77 @@ class Donut(Image):
         self.source = app.DONUTS[self.donut]['source']
         self.hp = app.DONUTS[self.donut]['hp']
         
-        if self.autotap:
-            Clock.schedule_interval(self.auto_increment_points, 0.1)  # Start autotapping
+        # if self.autotap:
+        #     Clock.schedule_interval(self.auto_increment_points, 0.1)  # Start autotapping
         
-    def auto_increment_points(self, dt):
-        self.parent.parent.parent.points += 1
-        self.hp -= 1
-        if self.hp <= 0:
-            self.new_donut()
+    # def auto_increment_points(self, dt):
+    #     self.parent.parent.parent.points += 1
+    #     self.hp -= 1
+    #     if self.hp <= 0:
+    #         self.new_donut()
 
+# class Donut(Image):
+#     autotap = False # Variable to track autotap state
+#     is_anim = False
+#     hp = None
+#     donut = None
+#     donut_index = 0
+#     # autotap = False  
+    
+#     # def __init__(self, **kwargs):
+#     #     super().__init__(**kwargs)
+#     #     self.game_screen_ref = kwargs.get('game_screen_ref') 
+        
+#     def on_touch_down(self, touch):
+#         if self.collide_point(*touch.pos):
+#             # Start the clock to continuously increment points if autotap is enabled
+#             if self.autotap or touch.is_mouse_scrolling:
+#                 self.start_continuous_points()
+#             else:
+#                 self.increment_points()
+#             # if self.autotap or touch.is_mouse_scrolling:  # Check if autotap is enabled or scrolling
+#             #     self.game_screen_ref.points += 1  # Access points from GameScreen instance
+#             self.parent.parent.parent.points +=1
+#             self.hp -= 1
+#             if self.hp <= 0:
+#                 self.new_donut()
+                    
+#             x = self.x
+#             y = self.y
+#             anim = Animation(x=x-5, y=y-5, duration=0.05) + \
+#                 Animation(x=x, y=y, duration=0.05)
+#             anim.start(self)
+#             self.is_anim = True
+#             anim.on_complete = lambda *args: setattr(self, 'is_anim', False)
+#             # return True  # Return True to indicate that the touch event is consumed
+#         return super().on_touch_down(touch)
+#     def on_touch_up(self, touch):
+#         if self.collide_point(*touch.pos):
+#             # Stop the clock when the touch is released
+#             self.stop_continuous_points()
+#             # Existing code...
+
+#     def start_continuous_points(self):
+#         self.continuous_points_event = Clock.schedule_interval(self.increment_points, 1.0)
+
+#     def stop_continuous_points(self):
+#         if hasattr(self, 'continuous_points_event'):
+#             self.continuous_points_event.cancel()
+
+#     def increment_points(self, dt=None):
+#         # Increment points continuously
+#         self.parent.parent.parent.points += 1
+#         self.hp -= 1
+#         if self.hp <= 0:
+#             self.new_donut()
+#     def new_donut(self):
+#         self.donut = app.LEVELS[randint(0, len(app.LEVELS))-1]
+#         self.source = app.DONUTS[self.donut]['source']
+#         self.hp = app.DONUTS[self.donut]['hp']
+        
+#         if self.autotap:
+#             Clock.schedule_interval(self.auto_increment_points, 0.1)  # Start autotapping
+        
 class ShopScreen(Screen):
     def init(self, **kwargs):
         super().__init__(**kwargs)
