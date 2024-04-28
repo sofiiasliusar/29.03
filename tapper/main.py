@@ -30,105 +30,74 @@ class GameScreen(Screen):
 
 
 
+
 class Donut(Image):
-    is_anim = False
     hp = None
-    donut = None
-    donut_index = 0
     long_press_clock = None
     switch_widget = ObjectProperty(None)
-    long_press_duration = 1.0  # in seconds
-    long_press_triggered = False
-    long_press_clock = None
-    
-        
+    long_press_duration = 2.0  # in seconds
+    is_touch_down = False  # Flag to track if touch is down
+    def check_touch_down(self):
+        return self.collide_point(*Window.mouse_pos)
+
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.touch_start_time = Clock.get_time()
-            
-            #create if else separation of activated autotap and single presses - to do
-            if self.switch_widget and self.switch_widget.active: #tried saying and when more than 1 sec
-                # also here tried
-                # self.update_points(0) 
-                # self.long_press_clock = Clock.schedule_interval(self.update_points, 0.05)
-                # Clock.schedule_once(self.check_long_press, self.long_press_duration)
-                self.long_press_clock = Clock.schedule_interval(self.update_points, 0.05)
-                Clock.schedule_once(self.check_long_press, self.long_press_duration)
-                if self.long_press_triggered:
-
-                    self.handle_long_press()
-                else:
-                    self.handle_single_tap()
+            self.is_touch_down = True  # Set touch down flag
+            if self.switch_widget and self.switch_widget.active:
+                Clock.schedule_once(self.handle_single_tap, 0)
+                Clock.schedule_once(self.check_press, self.long_press_duration)
             else:
                 self.handle_single_tap()
-                # self.parent.parent.parent.points +=1
-                # self.hp -= 1
-                # if self.hp <= 0:
-                #     self.new_donut()
-                
-                # x = self.x
-                # y = self.y
-                # anim = Animation(x=x-5, y = y-5, duration = 0.05) + \
-                #     Animation(x=x, y = y, duration = 0.05)
-                # anim.start(self)
-                # self.is_anim = True
-                # anim.on_complete = lambda *args: setattr(self, 'is_anim', False)
         return super().on_touch_down(touch)
-    
-    def handle_long_press(self):
-        self.update_points(0) 
-        self.long_press_clock = Clock.schedule_interval(self.update_points, 0.05)
-        Clock.schedule_once(self.check_long_press, self.long_press_duration)
-
-    def handle_single_tap(self):
-        self.parent.parent.parent.points +=1
-        self.hp -= 1
-        if self.hp <= 0:
-            self.new_donut()
-                
-        x = self.x
-        y = self.y
-        anim = Animation(x=x-5, y = y-5, duration = 0.05) + \
-            Animation(x=x, y = y, duration = 0.05)
-        anim.start(self)
-        self.is_anim = True
-        anim.on_complete = lambda *args: setattr(self, 'is_anim', False)
-    def on_touch_move(self, touch):
-        if not self.collide_point(*touch.pos):
-            self.cancel_long_press()
-        return super().on_touch_move(touch)
 
     def on_touch_up(self, touch):
-        # a = Clock.get_time() - self.touch_start_time
-        # print(a)
-        self.cancel_long_press()
+        self.is_touch_down = False  # Clear touch down flag
+        if self.long_press_clock:
+            self.long_press_clock.cancel()
+            self.long_press_clock = None
         return super().on_touch_up(touch)
 
-    def check_long_press(self, dt):
-        # tried to do it only for when more than one second = true, but didn`t work
-        self.long_press_triggered = True
-        print("Long press detected")
+    def check_press(self, dt):
+        if self.check_touch_down():
+            if self.long_press_clock:
+                self.long_press_clock.cancel()
+            self.handle_long_press()
+        elif self.long_press_clock:
+            self.long_press_clock.cancel()
+            self.long_press_clock = None
 
-    def update_points(self, dt):
-        if self.long_press_triggered:
-            self.parent.parent.parent.points +=1
+
+    def handle_single_tap(self, dt=None):
+        if self.is_touch_down:  # Only increment points if touch is down
+            self.parent.parent.parent.points += 1
             self.hp -= 1
             if self.hp <= 0:
                 self.new_donut()
-        
-    def cancel_long_press(self):
-        if self.long_press_triggered:
-            print("Long press finished")
-        if self.long_press_clock:
-            self.long_press_clock.cancel()
-        self.long_press_triggered = False
-        self.long_press_clock = None
+            x = self.x
+            y = self.y
+            anim = Animation(x=x-5, y=y-5, duration=0.05) + Animation(x=x, y=y, duration=0.05)
+            anim.start(self)
+
+    def handle_long_press(self):
+        if not self.is_touch_down:
+            if self.long_press_clock:
+                self.long_press_clock.cancel()
+                self.long_press_clock = None
+            return
+        self.long_press_clock = Clock.schedule_interval(self.update_points, 0.05)
+
+    def update_points(self, dt):
+        if self.is_touch_down:  # Only increment points if touch is down
+            self.parent.parent.parent.points += 1
+            self.hp -= 1
+            if self.hp <= 0:
+                self.new_donut()
 
     def new_donut(self):
-        self.donut = app.LEVELS[randint(0, len(app.LEVELS))-1] #index 8 number 9
-        self.source = app.DONUTS[self.donut]['source'] #CONSTANTS
+        app = App.get_running_app()
+        self.donut = app.LEVELS[randint(0, len(app.LEVELS)) - 1]
+        self.source = app.DONUTS[self.donut]['source']
         self.hp = app.DONUTS[self.donut]['hp']
-        
 
 
 class ShopScreen(Screen):
